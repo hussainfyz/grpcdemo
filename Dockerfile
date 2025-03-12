@@ -1,19 +1,22 @@
-# Use official Python base image
+# Use a lightweight Python base image
 FROM python:3.12
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
 # Copy application files
-COPY app.py /app
+COPY . /app
 
 # Install FastAPI and Uvicorn
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port that FastAPI runs on
-EXPOSE 8000
+# Install dependencies
+RUN pip install grpcio grpcio-tools
 
-# Run the FastAPI app using Uvicorn
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Expose gRPC server port
+EXPOSE 50051
+
+# Run the gRPC server
+CMD ["python", "grpc_server.py"]
