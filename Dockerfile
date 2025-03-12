@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Install dependencies
 RUN pip install grpcio grpcio-tools
+RUN pip install prometheus_client
 
 # Expose gRPC server port
 EXPOSE 50051
