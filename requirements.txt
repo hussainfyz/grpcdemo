@@ -3,3 +3,6 @@ uvicorn
 prometheus-fastapi-instrumentator
 opentelemetry-sdk
 opentelemetry-instrumentation-fastapi
+grpcio 
+grpcio-tools
+prometheus_client
