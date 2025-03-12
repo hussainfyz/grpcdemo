@@ -64,7 +64,8 @@ def main():
     oc_cluster = config["oc_cluster"]
 
     services = [
-        {"name": "fastapi", "port": 8000, "protocol": "TCP"}
+    
+         {"name": "grpc", "port": 50051, "protocol": "TCP"}
     ]
 
     # Docker Login
