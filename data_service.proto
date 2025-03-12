@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package dataservice;
+
+service DataService {
+    // Streams large dataset to the client
+    rpc GetLargeData(DataRequest) returns (stream DataRecord);
+}
+
+message DataRequest {
+    int32 num_records = 1;
+}
+
+message DataRecord {
+    int32 id = 1;
+    string name = 2;
+    float value = 3;
+    string category = 4;
+}
