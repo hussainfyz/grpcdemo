@@ -1,15 +1,15 @@
 import grpc
-import data_processor_pb2
-import data_processor_pb2_grpc
+import data_service_pb2
+import data_service_pb2_grpc
 
 # Connect to gRPC server
 channel = grpc.insecure_channel("localhost:50051")
-stub = data_processor_pb2_grpc.DataProcessorStub(channel)
+stub = data_service_pb2_grpc.DataServiceStub(channel)
 
-# Create test data
-test_data = [data_processor_pb2.DataItem(id=i, value=i*10) for i in range(5)]
-request = data_processor_pb2.ProcessRequest(data=test_data)
+# Send a request for 5 records
+request = data_service_pb2.DataRequest(num_records=5)
 
-# Call gRPC method
-response = stub.ProcessData(request)
-print(f"Processed Records: {response.processed_records}")
+# Call gRPC method and stream response
+print("📥 Receiving records from gRPC server:")
+for response in stub.GetLargeData(request):
+    print(f"📌 ID: {response.id}, Name: {response.name}, Value: {response.value}, Category: {response.category}")

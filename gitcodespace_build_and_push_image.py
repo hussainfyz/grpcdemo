@@ -39,19 +39,22 @@ def docker_login(username, password):
     logging.info("Logging into Docker Hub...")
     run_command(f"echo '{password}' | docker login -u '{username}' --password-stdin")
 
+
 def build_and_push_docker_image(service_name, repo):
     """Build and push Docker image"""
-    logging.info(f"Building Docker image {repo}/{service_name}:latest...")
-    run_command(f"docker build -t {repo}/{service_name}:latest -f Dockerfile.{service_name} .")
-    logging.info(f"Pushing Docker image {repo}/{service_name}:latest to Docker Hub...")
-    run_command(f"docker push {repo}/{service_name}:latest")
+    logging.info(f"Building Docker image {repo}:latest...")
+    run_command(f"docker build -t {repo}:latest -f Dockerfile .")
+    #run_command(f"docker tag {repo} myuser/myrepo:latest")
+    logging.info(f"Pushing Docker image {repo}:latest to Docker Hub...")
+
+    run_command(f"docker push {repo}:latest")
 
 def deploy_openshift(service_name, oc_cluster, repo, port, protocol):
     """Deploy application on OpenShift"""
     logging.info(f"Deploying {service_name} on OpenShift...")
-    run_command(f"oc new-app {repo}/{service_name}:latest --name={service_name} || oc rollout restart deployment/{service_name}")
+    run_command(f"oc new-app {repo}:latest --name={service_name} || oc rollout restart deployment/{service_name}")
     logging.info(f"Exposing {service_name} service...")
-    run_command(f"oc expose svc/{service_name} --port={port} --protocol={protocol}")
+    run_command(f"oc expose svc/{service_name} --port={port}")
 
 def main():
     """Main deployment process"""
