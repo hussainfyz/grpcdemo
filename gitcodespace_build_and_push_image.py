@@ -1,6 +1,6 @@
 import os
 import subprocess
-import json
+import json,time
 import logging
 import shutil
 
@@ -55,6 +55,24 @@ def deploy_openshift(service_name, oc_cluster, repo, port, protocol):
     run_command(f"oc new-app {repo}:latest --name={service_name} || oc rollout restart deployment/{service_name}")
     logging.info(f"Exposing {service_name} service...")
     run_command(f"oc expose svc/{service_name} --port={port}")
+    cmd1="oc delete pods,deployments,routes -l app=grpc"
+
+    cmd3=f"oc import-image grpc:latest --from=fayazhussain/grpc:latest --confirm"
+    cmd3=f"oc get imagestream grpc -o yaml | grep dockerImageReference"
+    cmd4=f"oc rollout restart deployment grpc"
+    cmd5=f"oc set image deployment/grpc grpc=fayazhussain/grpc:latest --all"
+    cmd6=f"oc get deployment grpc -o jsonpath='{.spec.template.spec.containers[*].image}'"
+    run_command(cmd1)
+    time.sleep(2)
+    run_command(cmd2)
+    time.sleep(2)
+    run_command(cmd3)
+    time.sleep(2)
+    run_command(cmd4)
+    time.sleep(2)
+    run_command(cmd5)
+    time.sleep(2)
+    run_command(cmd6)
 
 def main():
     """Main deployment process"""
