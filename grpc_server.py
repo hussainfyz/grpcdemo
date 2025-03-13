@@ -1,6 +1,7 @@
 import grpc
 from concurrent import futures
-import time
+import time,os
+print(os.listdir(os.getcwd()))
 import data_service_pb2
 import data_service_pb2_grpc
 from prometheus_client import start_http_server, Counter, Histogram
