@@ -68,7 +68,7 @@ def main():
 
     services = [
     
-         {"name": "grpc3", "port": 50051, "protocol": "TCP"}
+         {"name": "grpc", "port": 50051, "protocol": "TCP"}
     ]
 
     # Docker Login
