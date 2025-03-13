@@ -4,17 +4,17 @@ FROM python:3.12
 # Set the working directory
 WORKDIR /app
 
-# Copy application files
-COPY . /app
-
-# Install FastAPI and Uvicorn
-
+# Copy requirements file first to leverage Docker caching
 COPY requirements.txt .
+
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application files after installing dependencies
+COPY .* /app
 
 # Expose gRPC server port
 EXPOSE 50051
 
 # Run the gRPC server
-CMD ["python", "grpc_server.py"]
+CMD ls -l /app && ls -l && pwd && python /app/grpc_server.py
