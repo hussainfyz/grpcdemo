@@ -1,8 +1,8 @@
 import os
 import subprocess
-import json,time
+import json
+import time
 import logging
-import shutil
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -14,8 +14,7 @@ def load_config():
     """Load configuration from config.json"""
     try:
         with open(CONFIG_FILE, "r") as file:
-            config = json.load(file)
-        return config
+            return json.load(file)
     except (FileNotFoundError, json.JSONDecodeError) as e:
         logging.error(f"Error loading configuration: {e}")
         exit(1)
@@ -39,45 +38,30 @@ def docker_login(username, password):
     logging.info("Logging into Docker Hub...")
     run_command(f"echo '{password}' | docker login -u '{username}' --password-stdin")
 
-
 def build_and_push_docker_image(service_name, repo):
     """Build and push Docker image"""
     logging.info(f"Building Docker image {repo}:latest...")
-    run_command(f"docker build -t {repo}:latest -f Dockerfile .")
-    #run_command(f"docker tag {repo} myuser/myrepo:latest")
+    run_command(f"docker build -t --no-cache {repo}:latest -f Dockerfile .")
     logging.info(f"Pushing Docker image {repo}:latest to Docker Hub...")
-
     run_command(f"docker push {repo}:latest")
 
-def deploy_openshift(service_name, oc_cluster, repo, port, protocol):
+def deploy_openshift(service_name, oc_cluster, repo, port):
     """Deploy application on OpenShift"""
-    logging.info("Deleting exsting app")
-
-    cmd1="oc delete all -l app=grpc"
-    os.system(cmd1)
+    logging.info(f"Deleting existing app {service_name} (if any)...")
+    os.system(f"oc delete all -l app={service_name} --ignore-not-found=true")
     time.sleep(5)
-    logging.info(f"Deploying {service_name} on OpenShift...")
-    run_command(f"oc new-app --name={service_name} --image={repo}:latest --as-deployment-config")
-    #run_command(f"oc new-app {repo}:latest --name={service_name} || oc rollout restart deployment/{service_name}")
-    logging.info(f"Exposing {service_name} service...")
-    run_command(f"oc expose svc/{service_name} --port={port}")
-    
 
-    cmd2=f"oc import-image grpc:latest --from=fayazhussain/grpc:latest --confirm"
-    cmd3=f"oc get imagestream grpc -o yaml | grep dockerImageReference"
-    cmd4=f"oc rollout restart deployment grpc"
-    cmd5=f"oc set image deployment/grpc grpc=fayazhussain/grpc:latest --all"
-    cmd6="oc get deployment grpc -o jsonpath='{.spec.template.spec.containers[*].image}'"
+    logging.info(f"Deploying {repo} on OpenShift...")
+    run_command(f"oc new-app {repo}:latest --name=grpc --as-deployment-config")
     
-    os.system(cmd2)
-    time.sleep(2)
-    os.system(cmd3)
-    time.sleep(2)
-    os.system(cmd4)
-    time.sleep(2)
-    os.system(cmd5)
-    time.sleep(2)
-    os.system(cmd6)
+    logging.info(f"Exposing {service_name} service on port {port}...")
+    run_command(f"oc expose svc/{service_name} --port={port}")
+
+    logging.info("Forcing OpenShift to update the image...")
+    os.system(f"oc tag --source=docker {repo}:latest {service_name}:latest --force")
+    
+    logging.info("Restarting deployment to apply new image...")
+    os.system(f"oc rollout restart dc/{service_name}")
 
 def main():
     """Main deployment process"""
@@ -87,11 +71,9 @@ def main():
     docker_username = config["docker_username"]
     docker_password = config["docker_password"]
     docker_repo = config["docker_repo"]
-    oc_cluster = config["oc_cluster"]
 
     services = [
-    
-         {"name": "grpc", "port": 50051, "protocol": "TCP"}
+        {"name": "grpc", "port": 50051}
     ]
 
     # Docker Login
@@ -99,7 +81,7 @@ def main():
 
     for service in services:
         build_and_push_docker_image(service["name"], docker_repo)
-        deploy_openshift(service["name"], oc_cluster, docker_repo, service["port"], service["protocol"])
+        deploy_openshift(service["name"], config["oc_cluster"], docker_repo, service["port"])
 
     logging.info("Deployment complete!")
 

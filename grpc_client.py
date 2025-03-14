@@ -3,7 +3,8 @@ import data_service_pb2
 import data_service_pb2_grpc
 
 # Connect to gRPC server
-channel = grpc.insecure_channel("localhost:50051")
+GRPC_SERVER="route-improved-orangutan-fayaz-912-dev.apps.rm2.thpm.p1.openshiftapps.com:50051"
+channel = grpc.insecure_channel(GRPC_SERVER)
 stub = data_service_pb2_grpc.DataServiceStub(channel)
 
 # Send a request for 5 records
